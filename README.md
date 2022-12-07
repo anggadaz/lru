@@ -1,17 +1,19 @@
 # LRU
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/prophittcorey/lru.svg)](https://pkg.go.dev/github.com/prophittcorey/lru)
+
 A generic least recently used data structure.
 
 ## Usage
 
 ```golang
-  import "github.com/prophittcorey/lru"
+import "github.com/prophittcorey/lru"
 
-	cache := lru.New[string, int](10)
+cache := lru.New[string, int](10)
 
-	integer, hit, err := cache.Fetch("some-unique-key", func() (int, error) {
-		return getRandomIntExpensively(), nil
-	})
+integer, hit, err := cache.Fetch("some-unique-key", func() (int, error) {
+  return getRandomIntExpensively(), nil
+})
 ```
 
 ## License
