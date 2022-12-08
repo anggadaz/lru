@@ -20,6 +20,18 @@ type entry[K comparable] struct {
 	Prev *entry[K]
 }
 
+// Clear will free up all memory and reset the data structure.
+func (c *Cache[K, V]) Clear() {
+	c.Lock()
+
+	c.entries = map[K]V{}
+	c.head = nil
+	c.tail = nil
+	c.Size = 0
+
+	c.Unlock()
+}
+
 // Fetch attempts to retrieve a value from the cache using the provided key. If
 // the key isn't in the cache, the fetcher function will execute to get and store
 // the value for the key.

@@ -110,3 +110,33 @@ func TestCacheEjection(t *testing.T) {
 		t.Fatal("a known miss was a hit")
 	}
 }
+
+func TestCacheClear(t *testing.T) {
+	cache := New[string, int](10)
+
+	for i := 0; i < 10; i++ {
+		i := i
+
+		_, hit, _ := cache.Fetch(fmt.Sprintf("%d", i), func() (int, error) {
+			return i, nil
+		})
+
+		if hit {
+			t.Fatal("cache returned a hit in a cold start")
+		}
+	}
+
+	cache.Clear()
+
+	for i := 0; i < 10; i++ {
+		i := i
+
+		_, hit, _ := cache.Fetch(fmt.Sprintf("%d", i), func() (int, error) {
+			return i, nil
+		})
+
+		if hit {
+			t.Fatal("cache returned a hit in a cold start")
+		}
+	}
+}
