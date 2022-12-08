@@ -23,8 +23,8 @@ func TestCapacity(t *testing.T) {
 			t.Fatalf("%d != %d", i, value)
 		}
 
-		if len(cache.Entries) > cache.Capacity {
-			t.Fatalf("too many entries; %d", len(cache.Entries))
+		if cache.Size > cache.Capacity {
+			t.Fatalf("too many entries; %d", cache.Size)
 		}
 	}
 }
@@ -39,7 +39,7 @@ func TestCacheHitAndMiss(t *testing.T) {
 			return i, nil
 		})
 
-		if hit != false {
+		if hit {
 			t.Fatal("cache returned a hit in a cold start")
 		}
 	}
@@ -51,7 +51,7 @@ func TestCacheHitAndMiss(t *testing.T) {
 			return i, nil
 		})
 
-		if hit != true {
+		if !hit {
 			t.Fatal("cache returned a miss when the cache was pre-loaded")
 		}
 	}
@@ -60,7 +60,53 @@ func TestCacheHitAndMiss(t *testing.T) {
 		return 1337, nil
 	})
 
-	if hit == true {
+	if hit {
+		t.Fatal("a known miss was a hit")
+	}
+}
+
+func TestCacheEjection(t *testing.T) {
+	cache := New[string, int](10)
+
+	for i := 0; i < 10; i++ {
+		i := i
+
+		_, hit, _ := cache.Fetch(fmt.Sprintf("%d", i), func() (int, error) {
+			return i, nil
+		})
+
+		if hit {
+			t.Fatal("cache returned a hit in a cold start")
+		}
+	}
+
+	/* "0" should be present */
+	_, hit, _ := cache.Fetch("0", func() (int, error) {
+		return 0, nil
+	})
+
+	if !hit {
+		t.Fatal("a known hit was a miss")
+	}
+
+	if cache.tail.Key != "0" {
+		t.Fatalf("known tail key was wrong; got %s", cache.tail.Key)
+	}
+
+	/* this new key should eject "0" */
+	_, hit, _ = cache.Fetch("missing-no", func() (int, error) {
+		return 1337, nil
+	})
+
+	if hit {
+		t.Fatal("a known miss was a hit")
+	}
+
+	_, hit, _ = cache.Fetch("0", func() (int, error) {
+		return 0, nil
+	})
+
+	if hit {
 		t.Fatal("a known miss was a hit")
 	}
 }
